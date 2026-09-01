@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *{
+            position:center;
+            .container {
+             display: flex;
+             justify-content: center; /* Horizontal */
+             align-items: center;     /* Vertical */
+             height: 100vh;           /* Ensure container has height */
+            }
+            
+        .buttons{
+            background-color: pink;
+            height: auto;
+            width: auto;
+            padding: 20px;
+            justify-content: baseline;
+            font-size: large;
+
+
+        }
+        .button{
+            text-align: right;
+            height: auto;
+            width: auto;
+            padding: 20px;
+            justify-self:right;
+        }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <input type="text" class="display">
+
+        <div class="buttons">
+            <button class="operator" data-value="AC">AC</button>
+             <button class="operator" data-value="DEL">DEL</button>
+            <button class="operator" data-value="%">%</button>
+            <button class="operator" data-value="/">/</button>
+
+            <button data-value="7">7</button>
+            <button data-value="8">8</button>
+            <button data-value="9">9</button>
+            <button class="operator" data-value="*">*</button>
+
+            <button data-value="4">4</button>
+            <button data-value="5">5</button>
+            <button data-value="6">6</button>
+            <button class="operator" data-value="-">-</button>
+
+            <button data-value="1">1</button>
+            <button data-value="2">2</button>
+            <button data-value="3">3</button>
+            <button class="operator" data-value="+">+</button>
+
+            <button data-value="0">0</button>
+            <button data-value="00">00</button>
+            <button data-value=".">.</button>
+            <button class="operator" data-value="=">=</button>
+       
+        </div>
+    </div>
+
+<script>
+    const display=document.querySelector(".display");
+    const buttons=document.querySelectorAll("button");
+    const specialChars=["%","*","/","-","+","="];
+    let output="";
+
+    const calculate=(btnvalue)=>{
+        display.focus();
+        if(btnvalue === "=" && output !== ""){
+            output = eval(output.replace("%","/100"));
+        }
+
+        else if(btnvalue === "AC"){
+            output ="";
+        }
+
+        else{
+            if(output === "" && specialChars.includes(btnvalue))
+            return;
+           output += btnvalue; 
+        }
+
+        display.value = output;
+        };
+
+        buttons.forEach((button) =>{
+            button.addEventListener("click", (e) => calculate(e.target.dataset.value));
+        });
+
+</script>
+</body>
+</html>

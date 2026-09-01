@@ -1,0 +1,1 @@
+console.log("divs have been divided.");

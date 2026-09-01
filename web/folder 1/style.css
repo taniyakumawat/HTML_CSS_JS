@@ -1,0 +1,19 @@
+body{
+    margin: 0;
+    font-family: arial, sans-serif;
+}
+.main-div{
+    display: flex;
+    height: 100vh;
+}
+.left-div, .right-div{
+    flex: 1;
+    padding: 20px;
+    box-sizing: border-box;
+}
+.left-div{
+    background-color: lightblue;
+}
+.right-div{
+    background-color: lightcoral;
+}

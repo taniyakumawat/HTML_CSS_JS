@@ -1,0 +1,18 @@
+#dadaji{
+    height: 50px;
+    width: 50px;
+    border-radius: 50px;
+    background-color: blueviolet;
+}
+.papaji{
+    height: 50px;
+    width: 50px;
+    border-radius: 100%;
+    background-color: aqua;
+}
+.baccha{
+    height: 50px;
+    width: 50px;
+    border-radius: 100%;
+    background-color: aqua;
+}
