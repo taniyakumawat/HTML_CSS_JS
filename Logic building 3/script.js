@@ -145,4 +145,60 @@
 
 //                                        EVENTS AND EVENT HANDLING / LISTENER
 
+// let h1 = document.querySelector("h1")
+// h1.addEventListener("click", function(){
+//     h1.style.color = "red"
+// })
+
+// let p = document.querySelector("p");
+// p.addEventListener("dblclick", function(){
+//     p.style.color = "skyblue";
+// })
+
+
+// REMOVED THE COLOR
+// let p = document.querySelector("p");
+
+// function tanu(){
+//     p.style.color = "red"
+// }
+
+// p.addEventListener("dblclick", tanu)
+// p.removeEventListener("dblclick", tanu)
+
+// let inp = document.querySelector("input");
+// inp.addEventListener("input", function(dbt){
+//     if(dbt.data !== null)
+//     {
+//     console.log(dbt.data);
+//     }
+// })
+
+// let sel = document.querySelector("select");
+// let dev = document.querySelector("#sel")
+// sel.addEventListener("change", function(hnhyyyh){
+//     dev.textContent = `${hnhyyyh.target.value} Device selected`
+// })
+
+// let h1 = document.querySelector("h1")
+
+// window.addEventListener("keydown", function(vbb){
+//     // console.log(vbb)
+//     if (vbb.key === " "){
+//         h1.textContent = "SPC";
+//     }
+//     else if(vbb.key === "r" || vbb.key === "R"){
+//         h1.textContent = "DUDU";
+//     }
+//     else if(vbb.key === "t" || vbb.key === "T"){
+//         h1.style.color = "red"
+//     }
+//     else if(vbb.key === "b" || vbb.key === "B"){
+//         h1.style.color = "blue";
+//     }
+//     else{
+//         h1.textContent = vbb.key
+//     }
+// })
+
 
