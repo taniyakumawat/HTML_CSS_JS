@@ -388,21 +388,21 @@
 
 //           FORMS AND FORM VALIDATION
 
-let nam = document.querySelector("#name");
-let form = document.querySelector("form");
+// let nam = document.querySelector("#name");
+// let form = document.querySelector("form");
 
-form.addEventListener("submit", function(vbb){
-    vbb.preventDefault();
+// form.addEventListener("submit", function(vbb){
+//     vbb.preventDefault();
 
-    if (nam.value.length>2)
-        {
-            document.querySelector("#hide").style.display = "initial";
-        }  
-    else
-    {
-            document.querySelector("#hide").style.display = "initial";
-    }
-} );
+//     if (nam.value.length>2)
+//         {
+//             document.querySelector("#hide").style.display = "initial";
+//         }  
+//     else
+//     {
+//             document.querySelector("#hide").style.display = "initial";
+//     }
+// } );
 
 
 
@@ -486,6 +486,149 @@ form.addEventListener("submit", function(vbb){
 // localStorage.setItem("name", "rachit");
 
 // COOKIES
+
+
+
+
+
+
+
+
+
+
+
+// PHASE - 3
+//                CLOSURES , THIS , OOP , Async , APIs
+
+
+
+//  SCOPE, EXECUTION CONTEXT , FUNCTIONAL
+
+
+// 1 - VARIABLE scope
+// function A(){
+//     var a = 12;
+// }
+
+// console.log(a); // error - a only exist inside the function scope
+
+
+// 2 - Execution context 
+// function B(){
+//     var a = 122;
+//     let b = 20;
+//     let c = 30;
+// }
+ 
+
+// 3 - Lexical scope , dynamic scope - same as the normal scoping
+// function A(){
+//     let a = 12;
+//     function B(){
+//         console.log(a); // a is lexical scoped inside function A
+//     }
+// }
+
+
+// let a = 33;
+// function A(){
+//     console.log(a);
+// }
+
+// function B(){
+//     let a = 13; // dynamic scoping
+//     A();
+// }
+// B();
+
+
+
+//  4 - Closure definaion and how variables are preserved 
+// function A(){
+//     let a = 12;
+//     return function (){
+//         console.log(a);
+//     };
+// }
+// let fun = A();
+// fun();
+
+
+
+// function countforme(){
+//     let c = 0;
+//     return function(){
+//         c++;
+//         console.log(c);
+//     };
+// }
+// let fun = countforme();
+// fun();
+// fun();
+// fun();
+// fun();
+
+// let fun2 = countforme();
+// fun2();
+// fun2();
+// fun2();
+// fun2();
+// fun2();
+
+
+
+//  ENCAPLUCATION 
+// function clicklimiter(){
+//     let click = 0;
+//     if(click < 5){
+//         click++;
+//         console.log("clicked");
+//     }
+//     else{
+//         console.error("try again , limit was completed");
+//     };
+// }
+// let fun = clicklimiter();
+// fun();
+// fun();
+// fun();
+// fun();
+// fun();
+// fun();// output : try again , limit was completed
+// fun();// output : try again , limit was completed
+// fun();// output : try again , limit was completed
+
+
+//                        TOSTER
+function createToster(config){
+    return function(notification){
+        let div = document.createElement("div");
+        div.className = `fixed ${config.theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-black"}
+        px-6 py-3 rounded shadow-lg pointer-events-none ${config.positioX === "right" ? "right-10" : "left-10"}
+        ${config.positioY === "top" ? "top-10" : "bottom-10"}`;
+
+        div.textContent = notification;
+        document.body.appendChild(div);
+
+        setTimeout(() => {
+            document.body.removeChild(div);
+        }, config.duration * 1000);
+    };
+}
+let toaster = createToster({
+    positionX: "left",
+    positioY: "bottom",
+    theme: "light",
+    duration: 3,     
+});
+
+toaster("This is a dumy notification !");
+
+
+
+
+
+
 
 
 
