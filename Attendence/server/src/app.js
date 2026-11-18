@@ -33,10 +33,39 @@ app.use(
     },
   })
 );
+// CORS: explicit origin allow-list. credentials: true requires echoing the
+// exact request origin (never '*'). Trailing slashes are ignored because
+// browsers never send one in the Origin header.
+const normalizeOrigin = (value) =>
+  String(value || '').trim().toLowerCase().replace(/\/+$/, '');
+const allowedOrigins = new Set(
+  [
+    'https://attendence-client.vercel.app', // production frontend (Vercel)
+    'http://localhost:5173', // local Vite dev server
+    process.env.FRONTEND_URL, // optional extra deploy origin
+    env.clientUrl, // CLIENT_URL from server/.env
+  ]
+    .filter(Boolean)
+    .map(normalizeOrigin)
+    .filter(Boolean)
+);
+
 app.use(
   cors({
-    origin: env.clientUrl,
-    credentials: true,
+    // Reflect the caller's origin when it is allow-listed; requests without
+    // an Origin header (curl, server-to-server) are always allowed; unknown
+    // origins get no CORS headers, so the browser blocks the response.
+    // The cors middleware also answers OPTIONS preflight itself with 204
+    // before any other middleware, so preflight never consumes rate budget.
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.has(normalizeOrigin(origin))) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
+    credentials: true, // Authorization header / cookies cross-origin
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+    optionsSuccessStatus: 204, // legacy-browser preflight status
   })
 );
 // Reject object/array query params (NoSQL-injection guard) before any route

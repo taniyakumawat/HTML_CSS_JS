@@ -80,7 +80,7 @@ Attendence/
     ├── tailwind.config.js      # Navy palette, Inter font, card shadow
     ├── postcss.config.js
     ├── index.html              # Google Fonts (Inter), root div
-    ├── .env / .env.example     # VITE_API_BASE_URL=/api
+    ├── .env / .env.example     # VITE_API_BASE_URL (/api = Vite proxy; prod fallback = API server)
     └── src/
         ├── main.jsx            # React root
         ├── App.jsx             # BrowserRouter (AuthProvider in Phase 3)
@@ -211,7 +211,8 @@ npm run test:reports      # LIVE HTTP: reports + PDF/Excel export  49/49 ✅
 npm run test:notifications # LIVE HTTP: bell inbox + read states   24/24 ✅
 npm run test:security     # LIVE HTTP: headers, injection, JWT, RBAC,
                           #            rate limits, leakage ....... 39/39 ✅
-npm run test:prod         # PRODUCTION mode: SPA serving + API .... 12/12 ✅
+npm run test:prod         # PRODUCTION mode: SPA serving + API,
+                          #            serverless entry ......... 15/15 ✅
 npm run seed              # create default admin (admin@college.edu / Admin@123)
 ```
 
@@ -245,58 +246,81 @@ See `server/src/models/README.md` for the file list.
 
 ---
 
-## 7. Deployment (Phase 10)
+## 7. Deployment (Phase 10) — Vercel serverless
 
-The app supports two shapes. In **both**, MongoDB runs on **Atlas** and the
-server reads everything from `.env` (see `server/.env.example`).
+Three pieces: **`client/`** (static React SPA), **`server/`** (serverless
+Express API) and **MongoDB Atlas** for the data.
 
-### Option A — single service (simplest)
+### API → Vercel (project root directory: `server/`)
 
-Express serves the built React app from `client/dist`, so one process hosts
-the whole product (verified by `npm run test:prod`):
+`server/vercel.json` wires every request to the Express entry point:
 
-```bash
-# local production run
-npm run install:all          # root: install server + client deps
-npm run build                # root: vite build -> client/dist
-NODE_ENV=production npm start  # root: Express on :5000 (SPA + API)
-# PowerShell:  $env:NODE_ENV="production"; npm start
+```json
+{
+  "version": 2,
+  "builds": [{ "src": "src/index.js", "use": "@vercel/node" }],
+  "rewrites": [{ "source": "/(.*)", "destination": "/src/index.js" }]
+}
 ```
 
-**Render** (web service):
+- Entry point is **`src/index.js`** (ES Modules, `"type": "module"`).
+- In production it **exports the Express app** (`export default app`) and
+  `app.listen()` runs **only when `NODE_ENV !== 'production'`** — on Vercel
+  the platform invokes the exported app per request, so no port is bound.
+- MongoDB is connected on cold start (top-level `await connectDB()`);
+  warm invocations reuse the already-open connection.
+- Local runs are unchanged: `npm run dev` / `npm start` still connect and
+  listen, with graceful SIGTERM/SIGINT shutdown.
 
-| Setting    | Value                                             |
-| ---------- | ------------------------------------------------- |
-| Root dir   | `Attendence/` (repo root)                         |
-| Build      | `npm run install:all && npm run build`            |
-| Start      | `npm start`                                       |
-| Health     | `/api/health`                                     |
+**Steps:** push to GitHub → Vercel → *New Project* → import repo → set
+**Root Directory** to `server` → Framework preset **Other** (no build
+command; install command `npm install`) → add the env vars below → Deploy.
 
-### Option B — split hosting
+### Frontend → Vercel (project root directory: `client/`)
 
-- **Frontend → Vercel/Netlify**: `client/` (SPA rewrites ship in
-  `client/vercel.json`). Set `VITE_API_BASE_URL=https://<api-host>/api`.
-- **Backend → Render/Railway**: `server/` with start `npm start`.
-  Set `CLIENT_URL=https://<frontend-host>` for the CORS allow-list.
+1. New Project → Root Directory `client`, framework **Vite**
+   (build `npm run build`, output `dist` auto-detected).
+2. `client/vercel.json` already rewrites every route to `index.html` (SPA).
+3. Set `VITE_API_BASE_URL=https://<api-project>.vercel.app` — the `/api`
+   suffix is appended automatically (a full `.../api` value also works,
+   never `/api/api`); when unset, the built-in fallback is
+   `https://server-taniya16.vercel.app` (local dev keeps `/api` + proxy).
+4. CORS: the API allow-lists `https://attendence-client.vercel.app`,
+   `http://localhost:5173`, `CLIENT_URL` and optional `FRONTEND_URL`
+   (trailing slashes ignored, `credentials: true`, `OPTIONS` preflight → 204).
 
-### Environment variables (server)
+### Environment variables (server project)
 
-| Var                | Required | Notes                                                     |
-| ------------------ | -------- | --------------------------------------------------------- |
-| `MONGO_URI`        | ✅       | Atlas connection string → `/college_attendance`            |
-| `JWT_SECRET`       | ✅       | long random string; required when `NODE_ENV=production`   |
-| `NODE_ENV`         | ✅       | `production` enables SPA serving + 500-masking            |
-| `CLIENT_URL`       | ✅       | frontend origin for CORS                                  |
-| `PORT`             | ⬜       | defaults to `5000`                                        |
-| `TRUST_PROXY`      | ⬜       | `true` behind nginx/Render so rate-limits see real IPs    |
-| `LOGIN_RATE_LIMIT` | ⬜       | failed-login budget per 15 min (default `20`)             |
-| `JWT_EXPIRES_IN`   | ⬜       | default `1d`                                              |
+| Var                | Required    | Notes                                                     |
+| ------------------ | ----------- | --------------------------------------------------------- |
+| `MONGO_URI`        | ✅          | Atlas SRV string → `/college_attendance`                  |
+| `JWT_SECRET`       | ✅          | long random string; the server refuses to start in       |
+|                    |             | production without it                                     |
+| `CLIENT_URL`       | ✅          | frontend origin for CORS, e.g. `https://<client>.vercel.app` |
+| `FRONTEND_URL`     | ⬜          | extra allowed CORS origin (on top of the built-in           |
+|                    |             | `attendence-client.vercel.app` + `localhost:5173`)          |
+| `TRUST_PROXY`      | ✅ on Vercel| `true` — lets rate-limiting read `X-Forwarded-For`        |
+| `LOGIN_RATE_LIMIT` | ⬜          | failed-login budget per 15 min (default `20`)             |
+| `NODE_ENV`         | —           | set to `production` by Vercel (enables serverless entry)  |
+| `PORT`             | —           | unused on Vercel (no listener in production)              |
+| `JWT_EXPIRES_IN`   | ⬜          | default `1d`                                              |
+
+### Local commands
+
+```bash
+npm run dev        # full dev stack: API :5000 + Vite :5173
+npm run build      # production client bundle -> client/dist
+npm run test:prod  # boots NODE_ENV=production: SPA serving, JSON API
+                   # contract, CSP + the serverless entry (exports app,
+                   # never calls listen, connects Mongo) ......... 15/15 ✅
+```
 
 ### Production checklist
 
-- [x] `npm run build` (client), `NODE_ENV=production` (server)
+- [x] `server/vercel.json`: `/ (.*)` → `src/index.js` via `@vercel/node`
+- [x] Entry exports the Express app; `app.listen()` skipped in production
+- [x] Mongo connects on cold start; graceful shutdown kept for local runs
 - [x] Health endpoint `/api/health` for uptime checks
-- [x] Graceful shutdown on SIGTERM (drains connections, closes Mongo)
 - [x] Security headers + CSP (Google Fonts allow-listed), rate limits
 - [x] `engines.node >= 18`, no secrets in the repo (`.env` git-ignored)
-- [x] Full suite green: **344 checks** across 11 commands
+- [x] Full suite green: **347 checks** across 11 commands

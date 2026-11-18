@@ -13,7 +13,10 @@ const env = {
   mongoUri: process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/college_attendance',
   jwtSecret: process.env.JWT_SECRET || '',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '1d',
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  // Allowed frontend origin (CORS). Trailing slashes are stripped because
+  // browsers never send one in the Origin header (e.g. a CLIENT_URL of
+  // 'https://x.vercel.app/' must still match Origin: 'https://x.vercel.app').
+  clientUrl: (process.env.CLIENT_URL || 'http://localhost:5173').trim().replace(/\/+$/, ''),
   // Set true when running behind a reverse proxy (nginx, etc.) so
   // rate-limiting sees the real client IP from X-Forwarded-For.
   trustProxy: process.env.TRUST_PROXY === 'true',

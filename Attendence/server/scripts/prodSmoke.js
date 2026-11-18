@@ -11,6 +11,7 @@
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import mongoose from 'mongoose';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distDir = path.resolve(__dirname, '../../client/dist');
@@ -89,8 +90,30 @@ try {
 
   // ---- access log format ----
   check('production runs with NODE_ENV=production', process.env.NODE_ENV === 'production');
+
+  // ---- serverless entry (Vercel): exports the app, never binds a port ----
+  let listenCalled = false;
+  const originalListen = app.listen;
+  app.listen = () => {
+    listenCalled = true;
+    return { close() {} }; // record only - never actually bind in this test
+  };
+  const entry = await import('../src/index.js');
+  app.listen = originalListen;
+  check('★ index.js default-exports the Express app', entry.default === app);
+  check('★ index.js does NOT call app.listen() in production', listenCalled === false);
+  check(
+    'serverless entry opens the MongoDB connection on cold start',
+    mongoose.connection.readyState === 1,
+    `readyState=${mongoose.connection.readyState}`
+  );
 } finally {
   server.close();
+  try {
+    await mongoose.disconnect();
+  } catch {
+    /* already disconnected */
+  }
   console.log('\nDisconnected.\n');
 }
 
