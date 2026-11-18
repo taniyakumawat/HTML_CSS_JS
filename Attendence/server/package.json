@@ -1,0 +1,44 @@
+{
+  "name": "attendance-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "REST API backend for Smart College Attendance Management System",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "validate:models": "node scripts/validateModels.js",
+    "test:auth": "node scripts/testAuth.js",
+    "test:e2e": "node scripts/e2eAuth.js",
+    "test:admin": "node scripts/e2eAdmin.js",
+    "test:teacher": "node scripts/e2eTeacher.js",
+    "test:student": "node scripts/e2eStudent.js",
+    "test:reports": "node scripts/e2eReports.js",
+    "test:notifications": "node scripts/e2eNotifications.js",
+    "test:security": "node scripts/e2eSecurity.js",
+    "smoke-test": "node scripts/smokeTest.js",
+    "test:prod": "node scripts/prodSmoke.js",
+    "seed": "node src/seed/seedAdmin.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "express": "^4.19.2",
+    "express-rate-limit": "^8.7.1",
+    "express-validator": "^7.1.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.4.0",
+    "morgan": "^1.10.0",
+    "pdfkit": "^0.20.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}
