@@ -29,6 +29,8 @@ const DEFAULT_BASE_URL = import.meta.env.DEV
 const normalizeBaseUrl = (raw) => {
   let base = String(raw ?? '').trim().replace(/\/+$/, '');
   if (!base) base = DEFAULT_BASE_URL;
+  // Strict https for deployed Vercel hosts (never http:// - mixed content)
+  base = base.replace(/^http:\/\/([a-z0-9.-]+\.vercel\.app)/i, 'https://$1');
   base = base.replace(/(?:\/api)+$/, '/api'); // collapse '/api/api'
   if (!base.endsWith('/api')) base += '/api'; // Express mounts routers at '/api'
   return base;

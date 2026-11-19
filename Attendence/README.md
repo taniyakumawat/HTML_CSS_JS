@@ -285,7 +285,7 @@ command; install command `npm install`) → add the env vars below → Deploy.
    suffix is appended automatically (a full `.../api` value also works,
    never `/api/api`); when unset, the built-in fallback is
    `https://server-taniya16.vercel.app` (local dev keeps `/api` + proxy).
-4. CORS: the API allow-lists `https://attendence-client.vercel.app`,
+4. CORS: the API allow-lists `https://attendance-client.vercel.app`,
    `http://localhost:5173`, `CLIENT_URL` and optional `FRONTEND_URL`
    (trailing slashes ignored, `credentials: true`, `OPTIONS` preflight → 204).
 
@@ -298,7 +298,7 @@ command; install command `npm install`) → add the env vars below → Deploy.
 |                    |             | production without it                                     |
 | `CLIENT_URL`       | ✅          | frontend origin for CORS, e.g. `https://<client>.vercel.app` |
 | `FRONTEND_URL`     | ⬜          | extra allowed CORS origin (on top of the built-in           |
-|                    |             | `attendence-client.vercel.app` + `localhost:5173`)          |
+|                    |             | `attendance-client.vercel.app` + `localhost:5173`)          |
 | `TRUST_PROXY`      | ✅ on Vercel| `true` — lets rate-limiting read `X-Forwarded-For`        |
 | `LOGIN_RATE_LIMIT` | ⬜          | failed-login budget per 15 min (default `20`)             |
 | `NODE_ENV`         | —           | set to `production` by Vercel (enables serverless entry)  |

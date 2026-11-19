@@ -20,6 +20,31 @@ const app = express();
 // Behind a reverse proxy (Phase 10) trust X-Forwarded-For for rate-limit keys
 if (env.trustProxy) app.set('trust proxy', 1);
 
+// ---------- CORS: FIRST middleware - before any route, auth or redirect logic ----------
+// Explicit configuration so every preflight OPTIONS request is answered here
+// (204, never a redirect) and never reaches routing. credentials: true
+// requires echoing the exact origin (never '*').
+const corsOptions = {
+  origin: [
+    'https://attendance-client.vercel.app', // production frontend (Vercel)
+    'https://attendence-client.vercel.app', // alternate spelling (legacy)
+    'http://localhost:5173', // local Vite dev server
+    process.env.FRONTEND_URL, // optional extra deploy origin
+    env.clientUrl, // CLIENT_URL from server/.env
+  ]
+    .filter(Boolean)
+    .map((value) => String(value).trim().toLowerCase().replace(/\/+$/, '')), // trim + no trailing slash
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // Authorization header / cookies cross-origin
+  optionsSuccessStatus: 204, // preflight success: 204 (or 200)
+};
+
+// Explicit preflight handler: OPTIONS -> immediate 204, no redirect possible.
+app.options('*', cors(corsOptions));
+// Actual requests get the CORS headers (unknown origins get no ACAO header).
+app.use(cors(corsOptions));
+
 // ---------- Global middleware ----------
 // CSP: default helmet policy + the Google Fonts origins the SPA loads
 app.use(
@@ -31,41 +56,6 @@ app.use(
         'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
       },
     },
-  })
-);
-// CORS: explicit origin allow-list. credentials: true requires echoing the
-// exact request origin (never '*'). Trailing slashes are ignored because
-// browsers never send one in the Origin header.
-const normalizeOrigin = (value) =>
-  String(value || '').trim().toLowerCase().replace(/\/+$/, '');
-const allowedOrigins = new Set(
-  [
-    'https://attendence-client.vercel.app', // production frontend (Vercel)
-    'http://localhost:5173', // local Vite dev server
-    process.env.FRONTEND_URL, // optional extra deploy origin
-    env.clientUrl, // CLIENT_URL from server/.env
-  ]
-    .filter(Boolean)
-    .map(normalizeOrigin)
-    .filter(Boolean)
-);
-
-app.use(
-  cors({
-    // Reflect the caller's origin when it is allow-listed; requests without
-    // an Origin header (curl, server-to-server) are always allowed; unknown
-    // origins get no CORS headers, so the browser blocks the response.
-    // The cors middleware also answers OPTIONS preflight itself with 204
-    // before any other middleware, so preflight never consumes rate budget.
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.has(normalizeOrigin(origin))) {
-        return callback(null, true);
-      }
-      return callback(null, false);
-    },
-    credentials: true, // Authorization header / cookies cross-origin
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
-    optionsSuccessStatus: 204, // legacy-browser preflight status
   })
 );
 // Reject object/array query params (NoSQL-injection guard) before any route
