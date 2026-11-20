@@ -34,7 +34,7 @@ const corsOptions = {
   ]
     .filter(Boolean)
     .map((value) => String(value).trim().toLowerCase().replace(/\/+$/, '')), // trim + no trailing slash
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true, // Authorization header / cookies cross-origin
   optionsSuccessStatus: 204, // preflight success: 204 (or 200)
@@ -75,7 +75,8 @@ const distDir = path.resolve(__dirname, '../../client/dist');
 const hasBuiltClient = env.nodeEnv === 'production' && fs.existsSync(path.join(distDir, 'index.html'));
 
 if (hasBuiltClient) {
-  app.use(express.static(distDir));
+  // redirect: false - static never issues 3xx (incl. any /api/* safety)
+  app.use(express.static(distDir, { redirect: false }));
 }
 
 // ---------- Routes ----------
